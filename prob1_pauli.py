@@ -17,7 +17,7 @@ sigma_z = np.array([[1, 0],
                     [0, -1]], dtype=complex)
 
 def Rx(θ):
-    return np.cos(theta/2) * I - 1j * np.sin(theta/2) * sigma_x
+    return np.cos(θ/2) * I - 1j * np.sin(θ/2) * sigma_x
 
 def Ry(θ):
     return np.cos(θ/2) * I - 1j * np.sin(θ/2) * sigma_y
