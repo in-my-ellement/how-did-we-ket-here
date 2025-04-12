@@ -1,3 +1,4 @@
 # created by virtualenv automatically
 virtualenv/*
+__pycache__/*
 secrets.py
