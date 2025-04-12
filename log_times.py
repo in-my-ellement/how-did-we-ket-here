@@ -18,7 +18,7 @@ def run_simulation(filename):
     return end_time - start_time
 
 # List of QASM files
-files = ["P1_little_peak.qasm", "P2_swift_rise.qasm", "P3_sharp_peak.qasm"]
+files = ["P1_little_peak.qasm", "P2_swift_rise.qasm"]
 runtimes = [run_simulation(f) for f in files]
 
 # Plotting
