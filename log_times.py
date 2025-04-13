@@ -8,68 +8,62 @@ from qiskit.visualization import plot_histogram
 import matplotlib.pyplot as plt
 import env
 import bluequbit
+import quimb_simulator
 
 def run_local_sim(filename):
+    start = time.time()
     qc = QuantumCircuit.from_qasm_file(filename)
     qc.measure_all()
     sim = AerSimulator()
     tqc = transpile(qc)
-    start = time.time()
     result = sim.run(tqc).result()
     end = time.time()
     return end - start
 
 def run_blue_sim(filename):
+    
+    start = time.time()
+
     bq = bluequbit.init(env.bluetoken)
     qc = QuantumCircuit.from_qasm_file(filename)
     qc.measure_all()
-    start = time.time()
-    # options = {
-    #     'mps_bond_dimension': 32,  # Adjust based on available RAM
-    #     'mps_truncation_threshold': 1e-16,
-    # }
-    result = bq.run(qc, device="mps.cpu")  # Already returns a JobResult
+    
+    result = bq.run(qc, device="mps.cpu")
     counts = result.get_counts()
-    # sort counts by value
     end = time.time()
-    counts = dict(sorted(counts.items(), key=lambda item: item[1], reverse=True))
-    print(counts)
+
+    # Sort and keep only the top 10 most common results
+    sorted_counts = dict(sorted(counts.items(), key=lambda item: item[1], reverse=True)[:20])
+
+    print(sorted_counts)
+
     return end - start
 
-def statevector(filename):
-    qc = QuantumCircuit.from_qasm_file(filename)
-    cut_pass = CutQubits([24])  # Cut at qubit 24 (middle of the circuit)
-    cut_circuits = cut_pass.run(qc)
-    sim = AerSimulator()
-    sampler = SamplerV2(sim)
-    qc.save_statevector('final')
-    qc.measure_all()
-    sim = AerSimulator(method='statevector', device='GPU')
-    qc_opt = transpile(qc, sim, optimization_level=3)
-    result = sim.run(qc_opt, shots=512).result()
-    counts = result.get_counts()
-    # sort counts by value
-    counts = dict(sorted(counts.items(), key=lambda item: item[1], reverse=True))
-    print(counts)
-    plt.show()
-
-# run_blue_sim("P4_golden_mountain.qasm")
+def quimb_sim(filename, num_qubits=48):
+    start = time.time()
+    result = quimb_simulator.calc(filename, num_qubits)
+    print(result)
+    end = time.time()
+    return end - start
 
 # # QASM files to compare
 files = ["P1_little_peak.qasm", "P2_swift_rise.qasm"]
 pfiles = ["P1_little_peak.qasm", "P2_swift_rise.qasm", "P3_sharp_peak.qasm"]
+qfiles = ["P1_little_peak.qasm", "P2_swift_rise.qasm", "P3_sharp_peak.qasm"]
 
-# Collect runtimes
+# # Collect runtimes
 local_runtimes = [run_local_sim(f) for f in files]
 blue_runtimes = [run_blue_sim(f) for f in pfiles]
+quimb_runtimes = [quimb_sim(f) for f in qfiles]
 
-# Plot as line graph
+# # Plot as line graph
 plt.figure(figsize=(9, 5))
 plt.plot(files, local_runtimes, marker='o', label='Local (AerSimulator)', color='skyblue')
 plt.plot(pfiles, blue_runtimes, marker='s', label='BlueQubit (mps.cpu)', color='salmon')
+plt.plot(qfiles, quimb_runtimes, marker='s', label='Quimb', color='teal')
 plt.yscale('log')
 plt.ylabel("Runtime (log scale, seconds)")
-plt.title("Local vs BlueQubit QASM Simulation Runtime")
+plt.title("Runtime Comparisons of various different quantum algorithms")
 plt.grid(axis='y', which='both', linestyle='--', alpha=0.6)
 plt.legend()
 plt.tight_layout()
