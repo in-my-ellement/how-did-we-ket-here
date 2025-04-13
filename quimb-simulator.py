@@ -3,15 +3,25 @@ import quimb.tensor as qtn
 import re
 import math
 
-file_name = "P5_granite_summit.qasm"
-num_qubits = 44
+file_name = "P1_little_peak.qasm"
+num_qubits = 4
 
 # one line of qasm to quimb gate
 def qasm_to_gate(s: str) -> qtn.Gate:
+    # my match case statement!
+    if s[0] == "x":
+        m = re.match(r"x q\[(\d+)\];", s)
+        return qtn.Gate("X", params = [], qubits = [int(m[1])])
+
+
     match s[0:2]:
         case "sx": 
             m = re.match(r"sx q\w*\[(\d+)\];", s)
             return qtn.Gate("RX", params = [math.pi / 2], qubits = [int(m[1])])
+        case "ry":
+            t = re.sub(r"pi", "math.pi", s)
+            m = re.match(r"ry\((.*)\) q\[(\d+)\];", t)
+            return qtn.Gate("RY", params = [float(eval(m[1]))], qubits = [int(m[2])])
         case "rz": 
             m = re.match(r"rz\((-*\d\.\d+)\) q\w*\[(\d+)\];", s)
             return qtn.Gate("RZ", params = [float(m[1])], qubits = [int(m[2])])
