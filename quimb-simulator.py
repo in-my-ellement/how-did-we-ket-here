@@ -2,9 +2,12 @@ import numpy as np
 import quimb.tensor as qtn
 import re
 import math
+import itertools as it
+import matplotlib.pyplot as plt
+from collections import Counter
 
-file_name = "P1_little_peak.qasm"
-num_qubits = 4
+file_name = "P4_golden_mountain.qasm"
+num_qubits = 48
 
 # one line of qasm to quimb gate
 def qasm_to_gate(s: str) -> qtn.Gate:
@@ -40,9 +43,14 @@ with open(file_name, "r") as f:
     gates = [[qasm_to_gate(l)] for l in f.readlines()[3:]]
 
 # use the mps simulator from quimb
-qc = qtn.CircuitMPS.from_gates(gates)
+qc = qtn.CircuitMPS.from_gates(gates, num_qubits, progbar = True, max_bond = 64, cutoff = 1e-4)
 prob = np.array([0] * num_qubits)
-for b in qc.sample(20, seed=43): 
-    prob += np.array([int(n) for n in list(b)])
+c = Counter(qc.sample(100))
+print(c.most_common(1))
 
-print("".join(str(round(n)) for n in prob / 20))
+# count results to find the peaks
+plt.bar(list(c.keys()), list(c.values()))
+plt.xlabel("")
+plt.gca().set_xticklabels([])
+plt.tight_layout()
+plt.show()
